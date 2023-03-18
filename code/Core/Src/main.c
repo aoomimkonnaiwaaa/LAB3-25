@@ -48,6 +48,7 @@ UART_HandleTypeDef huart2;
 /* USER CODE BEGIN PV */
 uint32_t InputCaptureBuffer[IC_BUFFER_SIZE];
 float averageRisingedgePeriod; // average value
+uint32_t duty = 500;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -103,6 +104,8 @@ HAL_TIM_Base_Start(&htim2);
 HAL_TIM_IC_Start_DMA(&htim2, TIM_CHANNEL_1, InputCaptureBuffer, IC_BUFFER_SIZE); // start input capture with DMA
 // Keep in TIM_CHANNEL_1, DMA put in InputCaptureBuffer, IC buffer size
 
+HAL_TIM_Base_Start(&htim1);
+HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -117,6 +120,8 @@ HAL_TIM_IC_Start_DMA(&htim2, TIM_CHANNEL_1, InputCaptureBuffer, IC_BUFFER_SIZE);
   if (HAL_GetTick()>= timestamp){
 	  timestamp = HAL_GetTick() + 500;
 	  averageRisingedgePeriod = IC_Calc_Period();
+
+	  __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_1,duty);
   }
   /* USER CODE END 3 */
 }
