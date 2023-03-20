@@ -127,7 +127,7 @@ HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
 	  averageRisingedgePeriod = IC_Calc_Period();
 	  MotorSettingDuty();
 	  MotorVelocity();
-	  __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_1,Duty); //comepare เพื่อเปลี่ยน dutycycle
+	  __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_1,duty); // compare เพื่อเปลี่ยน duty cycle
   }
 }
   /* USER CODE END 3 */
@@ -400,7 +400,7 @@ float IC_Calc_Period()
 	uint32_t currentDMAPointer = IC_BUFFER_SIZE - __HAL_DMA_GET_COUNTER((htim2.hdma[1])); // เอา dma ของ cc1 มาอ่่าน
 
 	uint32_t lastValidDMAPointer = (currentDMAPointer - 1 + IC_BUFFER_SIZE) % IC_BUFFER_SIZE ;
-
+	// ตำแหน่งของช่วงที่เราจะเก็บข้อมูล ในที่นี้คือ 5
 	uint32_t i = (lastValidDMAPointer + IC_BUFFER_SIZE - 5) % IC_BUFFER_SIZE;
 
 	int32_t sumdiff = 0;
@@ -412,13 +412,14 @@ float IC_Calc_Period()
 		sumdiff += NextCapture - firstCapture;
 		i = (i+1) % IC_BUFFER_SIZE;
 	}
-	return sumdiff / 5.0 ;
+	return sumdiff / 5.0 ; // avg encoder rotation
 }
 void MotorSettingDuty (){
 	duty = MotorSetDuty * 10;
 }
 void MotorVelocity (){
-	MotorReadRPM = (averageRisingedgePeriod * 60)/ (12*64);
+	// velocity = (pulse frequency * 60) / (Encoder PPR * Gear Ratio)
+	MotorReadRPM = (1000000 * 60) / (12 * 64 * averageRisingedgePeriod);
 }
 /* USER CODE END 4 */
 
