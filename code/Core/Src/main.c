@@ -48,8 +48,9 @@ UART_HandleTypeDef huart2;
 /* USER CODE BEGIN PV */
 uint32_t InputCaptureBuffer[IC_BUFFER_SIZE];
 float averageRisingedgePeriod; // average value
-//uint32_t duty = 500;
-uint32_t MotorSetDuty = 0;
+uint32_t duty = 0;
+int MotorSetDuty = 0;
+float MotorReadRPM = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -61,6 +62,8 @@ static void MX_TIM2_Init(void);
 static void MX_TIM1_Init(void);
 /* USER CODE BEGIN PFP */
 float IC_Calc_Period();
+void MotorSettingDuty ();
+void MotorVelocity();
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -116,14 +119,17 @@ HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-  }
+
   static uint32_t timestamp = 0;
   if (HAL_GetTick()>= timestamp){
 	  timestamp = HAL_GetTick() + 500;
-	  averageRisingedgePeriod = IC_Calc_Period();
 
-	  __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_1,MotorSetDuty);
+	  averageRisingedgePeriod = IC_Calc_Period();
+	  MotorSettingDuty();
+	  MotorVelocity();
+	  __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_1,Duty); //comepare เพื่อเปลี่ยน dutycycle
   }
+}
   /* USER CODE END 3 */
 }
 
@@ -220,7 +226,7 @@ static void MX_TIM1_Init(void)
     Error_Handler();
   }
   sConfigOC.OCMode = TIM_OCMODE_PWM1;
-  sConfigOC.Pulse = 500;
+  sConfigOC.Pulse = 0;
   sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
   sConfigOC.OCNPolarity = TIM_OCNPOLARITY_HIGH;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
@@ -391,7 +397,7 @@ static void MX_GPIO_Init(void)
 /* USER CODE BEGIN 4 */
 float IC_Calc_Period()
 {
-	uint32_t currentDMAPointer = IC_BUFFER_SIZE - __HAL_DMA_COUNTER((htim2.hdma[1])); // เอา dma ของ cc1 มาอ่่าน
+	uint32_t currentDMAPointer = IC_BUFFER_SIZE - __HAL_DMA_GET_COUNTER((htim2.hdma[1])); // เอา dma ของ cc1 มาอ่่าน
 
 	uint32_t lastValidDMAPointer = (currentDMAPointer - 1 + IC_BUFFER_SIZE) % IC_BUFFER_SIZE ;
 
@@ -407,6 +413,12 @@ float IC_Calc_Period()
 		i = (i+1) % IC_BUFFER_SIZE;
 	}
 	return sumdiff / 5.0 ;
+}
+void MotorSettingDuty (){
+	duty = MotorSetDuty * 10;
+}
+void MotorVelocity (){
+	MotorReadRPM = (averageRisingedgePeriod * 60)/ (12*64);
 }
 /* USER CODE END 4 */
 
