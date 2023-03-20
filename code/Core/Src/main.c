@@ -51,6 +51,12 @@ float averageRisingedgePeriod; // average value
 uint32_t duty = 0;
 int MotorSetDuty = 0;
 float MotorReadRPM = 0;
+float MotorSetRPM = 0;
+float MotorSetRPMLog = 0;
+float kp = 1;
+float ki = 1;
+float NewDuty = 0;
+float MotorControlEnable = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -64,6 +70,7 @@ static void MX_TIM1_Init(void);
 float IC_Calc_Period();
 void MotorSettingDuty ();
 void MotorVelocity();
+void MotorSetting ();
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -122,12 +129,13 @@ HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
 
   static uint32_t timestamp = 0;
   if (HAL_GetTick()>= timestamp){
-	  timestamp = HAL_GetTick() + 500;
+	  timestamp = HAL_GetTick() + 1; // 1000 Hz
 
 	  averageRisingedgePeriod = IC_Calc_Period();
 	  MotorSettingDuty();
 	  MotorVelocity();
-	  __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_1,duty); // compare เพื่อเปลี่ยน duty cycle
+	  MotorSetting();
+	  MotorControl();
   }
 }
   /* USER CODE END 3 */
@@ -420,6 +428,27 @@ void MotorSettingDuty (){
 void MotorVelocity (){
 	// velocity = (pulse frequency * 60) / (Encoder PPR * Gear Ratio)
 	MotorReadRPM = (1000000 * 60) / (12 * 64 * averageRisingedgePeriod);
+}
+void MotorSetting(){
+	//kp
+	// (Velocity - Velocity Target) * kp = y
+
+	MotorSetRPMLog = (MotorSetRPM - MotorReadRPM) * kp; // kp*e
+	//ki
+	MotorSetRPMLog = MotorSetRPM + (ki * ((MotorSetRPM - MotorReadRPM) * (1 * 1000))); // kp*e + ki * integral e
+
+	NewDuty = (100 * MotorSetRPMLog) / 22.5; // (max duty cycle * MotorSetRPMLog(Required Velocity)/max RPM
+
+	// 1 mS = 1000 microseconds
+}
+void MotorControl(){
+	if (MotorControlEnable == 1) {
+		 __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_1,NewDuty*10); // compare เพื่อเปลี่ยน duty cycle
+		 // NewDutyCycle*10 เพราะทำให้ range ความถี่ของ duty = 1000
+	}
+	if (MotorControlEnable == 0) {
+		__HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_1,duty); // compare duty
+	}
 }
 /* USER CODE END 4 */
 
