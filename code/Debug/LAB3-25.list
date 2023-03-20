@@ -27,9 +27,9 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   ALLOC
  11 .ARM.attributes 00000030  00000000  00000000  0002000c  2**0
                   CONTENTS, READONLY
- 12 .debug_info   0000d2a2  00000000  00000000  0002003c  2**0
+ 12 .debug_info   0000d2a3  00000000  00000000  0002003c  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 13 .debug_abbrev 00001b3c  00000000  00000000  0002d2de  2**0
+ 13 .debug_abbrev 00001b3c  00000000  00000000  0002d2df  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
  14 .debug_aranges 00000c10  00000000  00000000  0002ee20  2**3
                   CONTENTS, READONLY, DEBUGGING, OCTETS
@@ -39,11 +39,11 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY, DEBUGGING, OCTETS
  17 .debug_line   0000d7a1  00000000  00000000  00045d07  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 18 .debug_str    0008a1d1  00000000  00000000  000534a8  2**0
+ 18 .debug_str    0008a1d9  00000000  00000000  000534a8  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 19 .comment      00000050  00000000  00000000  000dd679  2**0
+ 19 .comment      00000050  00000000  00000000  000dd681  2**0
                   CONTENTS, READONLY
- 20 .debug_frame  00003300  00000000  00000000  000dd6cc  2**2
+ 20 .debug_frame  00003300  00000000  00000000  000dd6d4  2**2
                   CONTENTS, READONLY, DEBUGGING, OCTETS
 
 Disassembly of section .text:
@@ -389,7 +389,7 @@ int main(void)
   MX_TIM1_Init();
  80004f8:	f000 f882 	bl	8000600 <MX_TIM1_Init>
   /* USER CODE BEGIN 2 */
-HAL_TIM_Base_Start(&htim2);
+HAL_TIM_Base_Start(&htim2); //start timer
  80004fc:	4808      	ldr	r0, [pc, #32]	; (8000520 <main+0x44>)
  80004fe:	f001 ff73 	bl	80023e8 <HAL_TIM_Base_Start>
 HAL_TIM_IC_Start_DMA(&htim2, TIM_CHANNEL_1, InputCaptureBuffer, IC_BUFFER_SIZE); // start input capture with DMA

@@ -48,7 +48,8 @@ UART_HandleTypeDef huart2;
 /* USER CODE BEGIN PV */
 uint32_t InputCaptureBuffer[IC_BUFFER_SIZE];
 float averageRisingedgePeriod; // average value
-uint32_t duty = 500;
+//uint32_t duty = 500;
+uint32_t MotorSetDuty = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -100,7 +101,7 @@ int main(void)
   MX_TIM2_Init();
   MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
-HAL_TIM_Base_Start(&htim2);
+HAL_TIM_Base_Start(&htim2); //start timer
 HAL_TIM_IC_Start_DMA(&htim2, TIM_CHANNEL_1, InputCaptureBuffer, IC_BUFFER_SIZE); // start input capture with DMA
 // Keep in TIM_CHANNEL_1, DMA put in InputCaptureBuffer, IC buffer size
 
@@ -121,7 +122,7 @@ HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
 	  timestamp = HAL_GetTick() + 500;
 	  averageRisingedgePeriod = IC_Calc_Period();
 
-	  __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_1,duty);
+	  __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_1,MotorSetDuty);
   }
   /* USER CODE END 3 */
 }
@@ -390,7 +391,7 @@ static void MX_GPIO_Init(void)
 /* USER CODE BEGIN 4 */
 float IC_Calc_Period()
 {
-	uint32_t currentDMAPointer = IC_BUFFER_SIZE - __HAL_DMA_COUNTER((htim2.hdma[1]));
+	uint32_t currentDMAPointer = IC_BUFFER_SIZE - __HAL_DMA_COUNTER((htim2.hdma[1])); // เอา dma ของ cc1 มาอ่่าน
 
 	uint32_t lastValidDMAPointer = (currentDMAPointer - 1 + IC_BUFFER_SIZE) % IC_BUFFER_SIZE ;
 
